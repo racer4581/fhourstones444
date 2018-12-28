@@ -10,12 +10,13 @@
 #endif
 
 // bitmask corresponds to board as follows in 4x4x4 case:
-//  . .  .  .  .  .  .  .  .  .  .  .  .  .  .  . TOP
-//  3 8 13 18 23 28 33 38 43 48 53 58 63 68 73 78
-//  2 7 12 17 22 27 32 37 42 47 52 57 62 67 72 77
-//  1 6 11 16 21 26 31 36 41 46 51 56 61 66 71 76
-//  0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 BOTTOM
-//  '___1___' '____2____' '____3____' '____4____' LAYERS (Front to Back)
+// gaps between slices to prevent detecting wrong 4 rows
+//  . .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 99 TOP
+//  3 8 13 18  . 28 33 38 43  . 53 58 63 68  . 78 83 88 93 .
+//  2 7 12 17  . 27 32 37 42  . 52 57 62 67  . 77 82 87 92 .
+//  1 6 11 16  . 26 31 36 41  . 51 56 61 66  . 76 81 86 91 .
+//  0 5 10 15  . 25 30 35 40  . 50 55 60 65  . 75 80 85 90 .  BOTTOM
+//  '___1___'    '____2____'    '____3____'    '____4____'    LAYERS (Front to Back)
 #define HEIGHT1 (HEIGHT+1)
 #define HEIGHT2 (HEIGHT+2)
 #define SIZE (HEIGHT*WIDTH)
@@ -89,10 +90,19 @@ public:
   // (bitboard of least significant positions of 4-in-a-rows)
   // TODO: Adapt this to search in 12 directions
   bitboard haswon(bitboard x1) {
-    return  haswond(x1,1)
-            | haswond(x1,HEIGHT1)
-            | haswond(x1,HEIGHT)
-            | haswond(x1,HEIGHT2);
+    return  haswond(x1,1)                         // vertical             |     e.g. 1
+            | haswond(x1,HEIGHT1)                 // horizontal           _     e.g. 5
+            | haswond(x1,2*HEIGHT1)               // depth                .     e.g. 25
+            | haswond(x1,HEIGHT)                  /* diagonal             \     e.g. 4   */
+            | haswond(x1,HEIGHT2)                 // diagonal             /     e.g. 6
+            | haswond(x1,2*HEIGHT1+1)             // diagonal depth up    |     e.g. 26
+            | haswond(x1,2*HEIGHT1-1)             // diagonal depth down  |     e.g. 24
+            | haswond(x1,2*HEIGHT1+HEIGHT1)       // diagonal flat back   _     e.g. 30
+            | haswond(x1,2*HEIGHT1-HEIGHT1)       // diagonal flat front  _     e.g. 20
+            | haswond(x1,2*HEIGHT1+HEIGHT1+1)     // diagonal cube up     /     e.g. 31
+            | haswond(x1,2*HEIGHT1+HEIGHT1-1)     /* diagonal cube down   \     e.g. 29  */
+            | haswond(x1,2*HEIGHT1+HEIGHT1-1)     // diagonal cube down        e.g. TODO: 3. Raumdiagonale
+            ;
   }
 
   // return result of 2nd player evens strategy: 0 for drawing; +1 for winning; -1 otherwise
