@@ -88,7 +88,7 @@ public:
 
   // return non-zero iff newboard includes a win
   // (bitboard of least significant positions of 4-in-a-rows)
-  // TODO: Adapt this to search in 12 directions
+  // this are for a cube now 13. tests (last 4 could be highly optimized)
   bitboard haswon(bitboard x1) {
     return  haswond(x1,1)                         // vertical             |     e.g. 1
             | haswond(x1,HEIGHT1)                 // horizontal           _     e.g. 5
@@ -101,8 +101,8 @@ public:
             | haswond(x1,2*HEIGHT1-HEIGHT1)       // diagonal flat front  _     e.g. 20
             | haswond(x1,2*HEIGHT1+HEIGHT1+1)     // diagonal cube up     /     e.g. 31
             | haswond(x1,2*HEIGHT1+HEIGHT1-1)     /* diagonal cube down   \     e.g. 29  */
-            | haswond(x1,2*HEIGHT1+HEIGHT1-1)     // diagonal cube down        e.g. TODO: 3. Raumdiagonale
-            ;
+            | haswond(x1,2*HEIGHT1-HEIGHT1-1)     // diagonal cube back up      e.g. 19
+            | haswond(x1,2*HEIGHT1-HEIGHT1+1);    // diagonal cube back down    e.g. 21
   }
 
   // return result of 2nd player evens strategy: 0 for drawing; +1 for winning; -1 otherwise
