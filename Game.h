@@ -21,6 +21,7 @@
 #define HEIGHT2 (HEIGHT+2)
 #define SIZE (HEIGHT*WIDTH)
 #define SIZE1 (HEIGHT1*WIDTH)
+#define TOTWIDTH (HEIGHT*HEIGHT1)
 
 #if (SIZE1<=64)
 typedef uint64_t bitboard;
@@ -28,6 +29,7 @@ typedef uint64_t bitboard;
 typedef __int128_t bitboard;
 #endif
 
+// TODO: revise SIZE and SIZE1 usage because of skipped columns
 #define COL1 (((bitboard)1<<HEIGHT1)-(bitboard)1)
 #if SIZE1 == 64
 #define ALL1 (~(bitboard)0)
@@ -44,13 +46,13 @@ typedef __int128_t bitboard;
 class Game {
 public:
   bitboard color[2];  // black and white bitboard
-  int moves[SIZE],nplies;
-  char hight[WIDTH]; // holds bit index of lowest free square
+  int moves[SIZE],nplies; // TODO: find out what array moves holds
+  char hight[TOTWIDTH]; // holds bit index of lowest free square
   
   void reset() {
     nplies = 0;
     color[0] = color[1] = (bitboard)0;
-    for (int i=0; i<WIDTH; i++)
+    for (int i=0; i<TOTWIDTH; i++)
       hight[i] = (char)(HEIGHT1*i);
   }
 
@@ -73,7 +75,8 @@ public:
 
   // return whether columns col has room
   int isplayable(int col) {
-    return col >= 0 && col < WIDTH && islegal(color[nplies&1] | ((bitboard)1 << hight[col]));
+    // && ((col + 1) % HEIGHT1) != 0
+    return col >= 0 && col < TOTWIDTH && islegal(color[nplies&1] | ((bitboard)1 << hight[col]));
   }
 
   // return number of stones in column col

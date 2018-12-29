@@ -17,24 +17,29 @@ int main(int argc, const char *argv[]) {
   assert(SIZE1 <= 8*sizeof(bitboard));
   assert(TRANSIZE >= ((bitboard)1 << (SIZE1-LOCKSIZE))*31/32);
   char bookfile[64];
-  sprintf(bookfile, "book%d%d", WIDTH, HEIGHT);
+  sprintf(bookfile, "book%d%d%d", HEIGHT, HEIGHT, HEIGHT);
   Window wins(argc > 1 ? argv[1] : bookfile);
   bool ok = true;
   wins.reset();
   wins.refresh();
   int c;
+  // Now using hexadecimal notation for column to put in
   while ((c = getchar()) != EOF && c != 'q') {
     switch (c) {
-      case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
-                  ok = wins.play(c - '1');
-                  break;
-      case '\n':  ok = wins.solve();
-                  wins.reset();
+      case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
+          ok = wins.play(c - '0');
+          break;
+      case 'a' : case 'b' : case 'c' : case 'd' : case 'e' : case 'f' :
+          ok = wins.play(c - 'a' + 10);
+          break;
+      case '\n':
+          ok = wins.solve();
+          wins.reset();
 		  break;
     }
     if (!ok) {
-       putchar('\7');
-       ok = true;
+        //putchar('\7');
+        ok = true;
     }
   }
   printf("Be seeing you...\n");

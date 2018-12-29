@@ -36,10 +36,18 @@
   }
 
   bool Window::play(int n) {
-    if (game.haswon(game.color[1 - (movenr & 1)]))
-       return false;
-    if (!game.isplayable(n))
-       return false;
+    // calculate n to internal representation (spacing columns can not be played)
+    // TODO move this to appropriate location and not use hardcoded constants
+    n = ((n / 4) * 5) + (n % 4);
+    printf("Bitboard: %d\n", n);
+    if (game.haswon(game.color[1 - (movenr & 1)])) {
+        printf("Game Won!\n");
+        return false;
+    }
+    if (!game.isplayable(n)) {
+        printf("Not Playable: %d\n", n);
+        return false;
+    }
     if (movenr == nmoves || moves[movenr] != n) {
       nmoves = movenr;
       moves[nmoves++] = n;
