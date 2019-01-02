@@ -18,10 +18,11 @@
 //  0 5 10 15  . 25 30 35 40  . 50 55 60 65  . 75 80 85 90 .  BOTTOM
 //  '___1___'    '____2____'    '____3____'    '____4____'    LAYERS (Front to Back)
 #define HEIGHT1 (HEIGHT+1)
+#define HEIGHT1SQ (HEIGHT1*HEIGHT1)
 #define HEIGHT2 (HEIGHT+2)
 #define SIZE (HEIGHT*WIDTH)
 #define SIZE1 (HEIGHT1*WIDTH)
-#define TOTWIDTH (HEIGHT*HEIGHT1)
+#define TOTSIZE (HEIGHT*HEIGHT1)
 
 #if (SIZE1<=64)
 typedef uint64_t bitboard;
@@ -47,12 +48,12 @@ class Game {
 public:
   bitboard color[2];  // black and white bitboard
   int moves[SIZE],nplies; // TODO: find out what array moves holds
-  char hight[TOTWIDTH]; // holds bit index of lowest free square
+  char hight[TOTSIZE]; // holds bit index of lowest free square
   
   void reset() {
     nplies = 0;
     color[0] = color[1] = (bitboard)0;
-    for (int i=0; i<TOTWIDTH; i++)
+    for (int i=0; i<TOTSIZE; i++)
       hight[i] = (char)(HEIGHT1*i);
   }
 
@@ -68,6 +69,24 @@ public:
       printf("%d", 1+moves[i]);
   }
 
+  void printBoard() {
+      for (int i = HEIGHT - 1; i >= 0; --i) {
+          for (int j = 0; j < 4*(HEIGHT+1); ++j) {
+              bitboard mask = (bitboard)1 << (j*HEIGHT1+i);
+              if(color[0] & mask){
+                  printf("X ");
+              }
+              else if(color[1] & mask){
+                  printf("O ");
+              }
+              else {
+                  printf(". ");
+              }
+          }
+          printf("\n");
+      }
+  }
+
   // return whether newboard lacks overflowing column
   int islegal(bitboard newboard) {
     return (newboard & TOP) == 0;
@@ -76,7 +95,7 @@ public:
   // return whether columns col has room
   int isplayable(int col) {
     // && ((col + 1) % HEIGHT1) != 0
-    return col >= 0 && col < TOTWIDTH && islegal(color[nplies&1] | ((bitboard)1 << hight[col]));
+    return col >= 0 && col < TOTSIZE && islegal(color[nplies&1] | ((bitboard)1 << hight[col]));
   }
 
   // return number of stones in column col
@@ -84,7 +103,12 @@ public:
     return hight[col] % HEIGHT1;
   }
 
+  int internalcolumn(int colhex){
+      return ((colhex / 4) * 5) + (colhex % 4);
+  }
+
   bitboard haswond(bitboard x1, int dir) {
+      //printf("dir: %d", dir);
     bitboard x2 = x1 & (x1>>dir);
     return x2 & (x2 >> 2*dir);
   }
@@ -95,17 +119,17 @@ public:
   bitboard haswon(bitboard x1) {
     return  haswond(x1,1)                         // vertical             |     e.g. 1
             | haswond(x1,HEIGHT1)                 // horizontal           _     e.g. 5
-            | haswond(x1,2*HEIGHT1)               // depth                .     e.g. 25
+            | haswond(x1,HEIGHT1SQ)               // depth                .     e.g. 25
             | haswond(x1,HEIGHT)                  /* diagonal             \     e.g. 4   */
             | haswond(x1,HEIGHT2)                 // diagonal             /     e.g. 6
-            | haswond(x1,2*HEIGHT1+1)             // diagonal depth up    |     e.g. 26
-            | haswond(x1,2*HEIGHT1-1)             // diagonal depth down  |     e.g. 24
-            | haswond(x1,2*HEIGHT1+HEIGHT1)       // diagonal flat back   _     e.g. 30
-            | haswond(x1,2*HEIGHT1-HEIGHT1)       // diagonal flat front  _     e.g. 20
-            | haswond(x1,2*HEIGHT1+HEIGHT1+1)     // diagonal cube up     /     e.g. 31
-            | haswond(x1,2*HEIGHT1+HEIGHT1-1)     /* diagonal cube down   \     e.g. 29  */
-            | haswond(x1,2*HEIGHT1-HEIGHT1-1)     // diagonal cube back up      e.g. 19
-            | haswond(x1,2*HEIGHT1-HEIGHT1+1);    // diagonal cube back down    e.g. 21
+            | haswond(x1,HEIGHT1SQ+1)             // diagonal depth up    |     e.g. 26
+            | haswond(x1,HEIGHT1SQ-1)             // diagonal depth down  |     e.g. 24
+            | haswond(x1,HEIGHT1SQ+HEIGHT1)       // diagonal flat back   _     e.g. 30
+            | haswond(x1,HEIGHT1SQ-HEIGHT1)       // diagonal flat front  _     e.g. 20
+            | haswond(x1,HEIGHT1SQ+HEIGHT1+1)     // diagonal cube up     /     e.g. 31
+            | haswond(x1,HEIGHT1SQ+HEIGHT1-1)     /* diagonal cube down   \     e.g. 29  */
+            | haswond(x1,HEIGHT1SQ-HEIGHT1-1)     // diagonal cube back up      e.g. 19
+            | haswond(x1,HEIGHT1SQ-HEIGHT1+1);    // diagonal cube back down    e.g. 21
   }
 
   // return result of 2nd player evens strategy: 0 for drawing; +1 for winning; -1 otherwise

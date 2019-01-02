@@ -37,7 +37,7 @@ void Trans::Hashentry::store(locktype lock, score sc, int work) {
     }
   }
   void Trans::store(bitboard bb, score sc, int work) {
-    locktype lock = (locktype)(SIZE1>LOCKSIZE ? bb >> (SIZE1-LOCKSIZE) : bb);
+    locktype lock = (locktype)(TOTSIZE>LOCKSIZE ? bb >> (TOTSIZE-LOCKSIZE) : bb);
     ht[(uint32_t)(bb % TRANSIZE)].store(lock, sc, work);
   }
 
@@ -66,7 +66,7 @@ void Trans::Hashentry::store(locktype lock, score sc, int work) {
       if (htemp2 < htemp)
         htemp = htemp2;
     }
-    lock = (locktype)(SIZE1>LOCKSIZE ? htemp >> (SIZE1-LOCKSIZE) : htemp);
+    lock = (locktype)(TOTSIZE>LOCKSIZE ? htemp >> (TOTSIZE-LOCKSIZE) : htemp);
     he = &tt.ht[(uint32_t)(htemp % TRANSIZE)];
     oldhashed = nhashed;
   }
@@ -185,8 +185,9 @@ void Trans::Hashentry::store(locktype lock, score sc, int work) {
     int otherside = side ^ 1;
     bitboard other = game->color[otherside];
     int av[WIDTH],nav;
+    // calculating new move
     for (int i = nav = 0; i < WIDTH; i++) {
-      int hi = game->hight[i];
+      int hi = game->hight[game->internalcolumn(i)];
       bitboard newbrd = other | ((bitboard)1 << hi); // check opponent move
       if (!game->islegal(newbrd)) 
         continue;
@@ -197,7 +198,7 @@ void Trans::Hashentry::store(locktype lock, score sc, int work) {
         nav = 0; // forced move
         av[nav++] = hi;
         while (++i < WIDTH)
-          if (game->islegalhaswon(other | ((bitboard)1 << game->hight[i])))
+          if (game->islegalhaswon(other | ((bitboard)1 << game->hight[game->internalcolumn(i)])))
             return LOSS;
         break;
       }
@@ -276,9 +277,12 @@ void Trans::Hashentry::store(locktype lock, score sc, int work) {
   score Search::solve() {
     nodes = 0;
     msecs = millisecs();
-    score sc = dab(8, LOSS, WIN);
+    printf("Doing dab\n");
+    score sc = dab(10, LOSS, WIN);
+    printf("Finished dab\n");
     if (sc == UNKNOWN) {
       book.bopen();
+      printf("Doing ab\n");
       sc = ab(LOSS, WIN);
       book.bclose();
     }
@@ -287,6 +291,7 @@ void Trans::Hashentry::store(locktype lock, score sc, int work) {
   }
   score Search::dab(int depth, int alpha, int beta) {
     nodes++;
+    //printf("depth = %d\n", depth);
     if (game->haswon(game->color[1-(game->nplies&1)]))
       return LOSS;
     if (game->nplies == SIZE) // no move left
@@ -294,6 +299,7 @@ void Trans::Hashentry::store(locktype lock, score sc, int work) {
     Result rslt = book.find(game);
     score ttscore = rslt.sc;
     if (ttscore == UNKNOWN) {
+      //printf("ttscore = UNKNOWN\n");
       Hash hash(tt, game);
       ttscore = hash.transpose();
     } else work = rslt.work;
@@ -312,12 +318,15 @@ void Trans::Hashentry::store(locktype lock, score sc, int work) {
     bitboard me = game->color[side];
     score v, sc = LOSS;
     bool unknown = false;
+    // calculating new move
     for (int i = 0; i < WIDTH; i++) {
+      i = game->internalcolumn(i);
       int hi = game->hight[i];
       bitboard newbrd = me | ((bitboard)1 << hi);
       if (!game->islegal(newbrd)) 
         continue;
       game->makemove(i);
+        //printf("Place Stone %d\n",i);
       score val = (score)(LOSSWIN - (v=dab(depth-1,LOSSWIN-beta,LOSSWIN-alpha)));
       game->backmove();
       if (v == UNKNOWN) {
@@ -326,7 +335,7 @@ void Trans::Hashentry::store(locktype lock, score sc, int work) {
       }
       if (val > sc) {
         if ((sc=val) > alpha && (alpha=val) >= beta) {
-          if (sc == DRAW && i < WIDTH-1)
+          if (sc == DRAW && i < TOTSIZE-1)
             sc = DRAWWIN;
           break;
         }

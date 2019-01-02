@@ -38,7 +38,7 @@
   bool Window::play(int n) {
     // calculate n to internal representation (spacing columns can not be played)
     // TODO move this to appropriate location and not use hardcoded constants
-    n = ((n / 4) * 5) + (n % 4);
+    n = game.internalcolumn(n);
     printf("Bitboard: %d\n", n);
     if (game.haswon(game.color[1 - (movenr & 1)])) {
         printf("Game Won!\n");
@@ -53,6 +53,7 @@
       moves[nmoves++] = n;
     }
     game.makemove(n);
+    game.printBoard();
     movenr++;
     return true;
   }
