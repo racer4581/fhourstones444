@@ -39,7 +39,7 @@
     // calculate n to internal representation (spacing columns can not be played)
     // TODO move this to appropriate location and not use hardcoded constants
     n = game.internalcolumn(n);
-    printf("Bitboard: %d\n", n);
+    // printf("Bitboard: %d\n", n);
     if (game.haswon(game.color[1 - (movenr & 1)])) {
         printf("Game Won!\n");
         return false;
@@ -53,7 +53,6 @@
       moves[nmoves++] = n;
     }
     game.makemove(n);
-    game.printBoard();
     movenr++;
     return true;
   }
@@ -74,6 +73,11 @@
     printf("  %ju pos / %ju msec = %jd Kpos/sec\n", (uintmax_t)search.nodes, (uintmax_t)search.msecs, (intmax_t)(search.nodes/search.msecs));
     return true;
   }
+
+  void Window::printBoard(){
+      game.printBoard();
+  }
+
 
   bool Window::evals() {
     return true;

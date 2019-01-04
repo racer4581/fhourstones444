@@ -33,6 +33,7 @@ int main(int argc, const char *argv[]) {
           ok = wins.play(c - 'a' + 10);
           break;
       case '\n':
+          wins.printBoard();
           ok = wins.solve();
           wins.reset();
 		  break;

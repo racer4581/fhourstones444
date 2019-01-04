@@ -22,6 +22,7 @@ public:
   Window(const char *bookfile);
   ~Window();
   void refresh();
+  void printBoard();
   bool back();
   bool forward();
   bool play(int n);

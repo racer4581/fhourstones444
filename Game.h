@@ -23,6 +23,7 @@
 #define SIZE (HEIGHT*WIDTH)
 #define SIZE1 (HEIGHT1*WIDTH)
 #define TOTSIZE (HEIGHT*HEIGHT1)
+#define ALLBITS (TOTSIZE*HEIGHT1)
 
 #if (SIZE1<=64)
 typedef uint64_t bitboard;
@@ -35,7 +36,7 @@ typedef __int128_t bitboard;
 #if SIZE1 == 64
 #define ALL1 (~(bitboard)0)
 #else
-#define ALL1 (((bitboard)1<<SIZE1)-(bitboard)1)
+#define ALL1 (((bitboard)1<<ALLBITS)-(bitboard)1)
 #endif
 #define BOTTOM (ALL1 / COL1) // has bits i*HEIGHT1 set
 #define TOP (BOTTOM << HEIGHT)
@@ -69,7 +70,24 @@ public:
       printf("%d", 1+moves[i]);
   }
 
+  void testTop() {
+      for (int i = HEIGHT; i >= 0; --i) {
+          for (int j = 0; j < 4*(HEIGHT+1); ++j) {
+              bitboard mask = (bitboard)1 << (j*HEIGHT1+i);
+              if(TOP & mask){
+                  printf("X ");
+              }
+              else {
+                  printf(". ");
+              }
+          }
+          printf("\n");
+      }
+      printf("\n");
+  }
+
   void printBoard() {
+      //testTop();
       for (int i = HEIGHT - 1; i >= 0; --i) {
           for (int j = 0; j < 4*(HEIGHT+1); ++j) {
               bitboard mask = (bitboard)1 << (j*HEIGHT1+i);
@@ -105,6 +123,10 @@ public:
 
   int internalcolumn(int colhex){
       return ((colhex / 4) * 5) + (colhex % 4);
+  }
+
+  int internalcolumnreverse(int colhex){
+      return ((colhex / 5) * 4) + (colhex % 5);
   }
 
   bitboard haswond(bitboard x1, int dir) {

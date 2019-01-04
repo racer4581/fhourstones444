@@ -278,7 +278,7 @@ void Trans::Hashentry::store(locktype lock, score sc, int work) {
     nodes = 0;
     msecs = millisecs();
     printf("Doing dab\n");
-    score sc = dab(10, LOSS, WIN);
+    score sc = dab(20, LOSS, WIN);
     printf("Finished dab\n");
     if (sc == UNKNOWN) {
       book.bopen();
@@ -320,15 +320,16 @@ void Trans::Hashentry::store(locktype lock, score sc, int work) {
     bool unknown = false;
     // calculating new move
     for (int i = 0; i < WIDTH; i++) {
-      i = game->internalcolumn(i);
-      int hi = game->hight[i];
+      int hi = game->hight[game->internalcolumn(i)];
       bitboard newbrd = me | ((bitboard)1 << hi);
       if (!game->islegal(newbrd)) 
         continue;
-      game->makemove(i);
-        //printf("Place Stone %d\n",i);
+      game->makemove(game->internalcolumn(i));
+      //printf("Place Stone %d\n",i);
+      //game->printBoard();
       score val = (score)(LOSSWIN - (v=dab(depth-1,LOSSWIN-beta,LOSSWIN-alpha)));
-      game->backmove();
+      //game->backmove();
+      printf("Backmove, depth = %d\n", depth);
       if (v == UNKNOWN) {
         unknown = true;
         continue;
